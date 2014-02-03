@@ -15,10 +15,14 @@ out vec2 pass_TextureCoord2;
 
 out vec3 p_eye;
 out vec3 n_eye;
+out vec2 uv2_eye;
 
-void main () 
+void main() 
 {
-  p_eye = (viewMatrix * modelMatrix * in_Position).xyz;
-  n_eye = (viewMatrix * modelMatrix * in_Normal).xyz;
-  gl_Position = projectionMatrix * vec4 (p_eye, 1.0);
+	uv2_eye = in_TextureCoord2;
+	
+	p_eye = (viewMatrix * modelMatrix * in_Position).xyz;
+	n_eye = (viewMatrix * modelMatrix * in_Normal).xyz;
+	
+	gl_Position = projectionMatrix * vec4 (p_eye, 1.0);
 }

@@ -19,5 +19,5 @@ void main(void)
 
 	imageStore(output_buffer, ivec2(pass_TextureCoord1*256), val);
 	
-	out_Color = val;// * texture2D(texture_diffuse1, pass_TextureCoord2);
+	out_Color = texture2D(texture_diffuse0, pass_TextureCoord2);//val;// * texture2D(texture_diffuse1, pass_TextureCoord2);
 }

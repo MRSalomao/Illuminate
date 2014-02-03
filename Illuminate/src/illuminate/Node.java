@@ -64,8 +64,8 @@ public class Node
 		modelMatrix.store(matrix44Buffer); matrix44Buffer.flip();
 		glUniformMatrix4(Shader.activeProgram.modelMatrixLocation, false, matrix44Buffer);
 
-		diffuse.setActive();
-		if (lightmap != null) lightmap.setActive();
+//		diffuse.setActive();
+//		if (lightmap != null) lightmap.setActive();
 		
 		mesh.render();
 	}

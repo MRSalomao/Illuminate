@@ -6,6 +6,9 @@ import java.nio.FloatBuffer;
 import illuminate.internal.OffscreenFBO;
 import static org.lwjgl.opengl.ARBTextureStorage.glTexStorage2D;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.EXTFramebufferObject.*;
+import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL12.*;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.input.Mouse;
@@ -38,6 +41,7 @@ public class App
 	Texture texture, texture2, texture3;
 	
 	int normalTextureID, positionTextureID, blackWhiteTextureID;
+	int normalPassTextureID, positionPassTextureID, uv2PassTextureID;
 	
 
 	public void init()
@@ -53,9 +57,13 @@ public class App
 		positionTextureID = glGenTextures();	
 		blackWhiteTextureID = glGenTextures();	
 		
-//		offscreenFbo.attachTexture(normalTextureID);
-//		offscreenFbo.attachTexture(positionTextureID);
-		offscreenFbo.attachTexture(blackWhiteTextureID);
+		normalPassTextureID = glGenTextures();	
+		positionPassTextureID = glGenTextures();	
+		uv2PassTextureID = glGenTextures();	
+		
+		offscreenFbo.attachTexture(normalPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT1_EXT);
+		offscreenFbo.attachTexture(positionPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT0_EXT);
+		offscreenFbo.attachTexture(uv2PassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT2_EXT);
 		
 
 		shader1 = new Shader("firstPass");
@@ -108,6 +116,7 @@ public class App
 		
 //		if (Mouse.getX() < 256 && Mouse.getY() < 256) System.out.println(buffer.get(Mouse.getX()*4 + Mouse.getY()*4*256));
 		
+		draw();
 		
 		shader2.setActive();
 		a+=0.002*dt;
@@ -115,10 +124,23 @@ public class App
 //		camera.lookAt(camera.position, node2.position, new Vector3f(0,0,1));
 //		node.position.set((float)Math.cos(a)*2, (float)Math.sin(a)*2, 1);
 		
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, normalPassTextureID);
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, uv2PassTextureID);
 		
 		node.render();
-//		node2.render();
-		draw();
+		
+		glActiveTexture(GL_TEXTURE0 + 1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0 + 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferBlit.GL_READ_FRAMEBUFFER_EXT, offscreenFbo.framebufferID);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferBlit.GL_DRAW_FRAMEBUFFER_EXT, 0);
 		
@@ -129,21 +151,17 @@ public class App
 	void draw()
 	{
 		offscreenFbo.bind();
+		offscreenFbo.setMultTarget();
 		glViewport(0, 0, 256, 256);
 		
 		camera.clearScreen();
 		
-//		texture2.setActive();
 		shader1.setActive();
-		
-//		glActiveTexture(GL_TEXTURE0);
-//		glBindTexture(GL_TEXTURE_2D, texture.texId);
-//		glActiveTexture(GL_TEXTURE1);
-//		glBindTexture(GL_TEXTURE_2D, texture2.texId);
 		
 		node.render();
 		
 		glViewport(0, 0, canvasWidth, canvasHeight);
+		offscreenFbo.setSingleTarget();
 		offscreenFbo.unbind();
 	}
 	

@@ -58,10 +58,17 @@ public class OffscreenFBO
 	
 	public void setMultTarget()
 	{
-		IntBuffer draw_bufs = BufferUtils.createIntBuffer(2);
+		IntBuffer draw_bufs = BufferUtils.createIntBuffer(1);
 		draw_bufs.put(GL30.GL_COLOR_ATTACHMENT0);
-		draw_bufs.put(GL30.GL_COLOR_ATTACHMENT1);
+//		draw_bufs.put(GL30.GL_COLOR_ATTACHMENT1);
+//		draw_bufs.put(GL30.GL_COLOR_ATTACHMENT2);
+		draw_bufs.rewind();
 		GL20.glDrawBuffers(draw_bufs);
+	}
+	
+	public void setSingleTarget()
+	{
+		glDrawBuffer(GL30.GL_COLOR_ATTACHMENT0);
 	}
 	
 	private void attachDepthbuffer()
