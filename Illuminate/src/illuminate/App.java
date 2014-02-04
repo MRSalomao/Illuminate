@@ -75,7 +75,7 @@ public class App
 		
 		mesh = new Mesh("house.mrs");
 		mesh2 = new Mesh("plane.mrs");
-		
+
 		node = new Node(mesh, texture);
 		node.setLightmap(texture2);
 		node.position.set(0, 0, -3.29f);
@@ -126,12 +126,12 @@ public class App
 		
 		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, normalPassTextureID);
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
 		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
+		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, uv2PassTextureID);
 		
-		node.render();
+		mesh2.render();
 		
 		glActiveTexture(GL_TEXTURE0 + 1);
 		glBindTexture(GL_TEXTURE_2D, 0);

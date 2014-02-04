@@ -20,7 +20,7 @@ public class Shader
 	
 	int programId;
 	
-	int tex0Location, tex1Location, imageTexLocation;
+	int tex0Location, tex1Location, tex2Location, imageTexLocation;
 	
 	boolean useTex1;
 	
@@ -63,6 +63,7 @@ public class Shader
 		
 		tex0Location = glGetUniformLocation(programId, "texture_diffuse0");
 		tex1Location = glGetUniformLocation(programId, "texture_diffuse1");
+		tex2Location = glGetUniformLocation(programId, "texture_diffuse2");
 		
 		imageTexLocation = glGetUniformLocation(programId, "output_buffer");
 
@@ -83,6 +84,7 @@ public class Shader
 		
 		glUniform1i(tex0Location, 0);
 		glUniform1i(tex1Location, 1);
+		glUniform1i(tex2Location, 2);
 		glUniform1i(imageTexLocation, 3);
 
 		Utils.exitOnGLError("Shader-setActive");

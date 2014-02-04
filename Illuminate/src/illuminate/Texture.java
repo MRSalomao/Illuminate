@@ -49,6 +49,9 @@ public class Texture
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, buf);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		
 		GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
 	}
 	
