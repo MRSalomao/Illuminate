@@ -49,7 +49,7 @@ public class OffscreenFBO
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, GL_INT, (java.nio.ByteBuffer) null);	
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, GL_FLOAT, (java.nio.ByteBuffer) null);	
 		
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, colorAttachment, GL_TEXTURE_2D, colorTextureID, 0);
 

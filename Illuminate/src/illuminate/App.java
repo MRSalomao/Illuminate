@@ -15,6 +15,9 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.EXTFramebufferBlit;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL40;
+import org.lwjgl.opengl.GL41;
 import org.lwjgl.opengl.GL42;
 
 import static org.lwjgl.opengl.GL13.*;
@@ -28,7 +31,7 @@ public class App
 {
 	static App singleton;
 	
-	int canvasWidth = 1024, canvasHeight = 728;
+	int canvasWidth = 1024, canvasHeight = 1024;
 	
 	OffscreenFBO offscreenFbo;
 	
@@ -47,11 +50,11 @@ public class App
 	public void init()
 	{
 		camera = new Camera(new Vector3f(-10,0,0));
-		camera.clearScreenColor(0.2f);
+		camera.clearScreenColor(0.0f);
 		fpsCameraHandler = new FpsCameraHandler(camera);
 		
 		
-		offscreenFbo = new OffscreenFBO(256, 256, true);
+		offscreenFbo = new OffscreenFBO(1024, 1024, true);
 		
 		normalTextureID = glGenTextures();	
 		positionTextureID = glGenTextures();	
@@ -63,7 +66,7 @@ public class App
 		
 		offscreenFbo.attachTexture(normalPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT1_EXT);
 		offscreenFbo.attachTexture(positionPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT0_EXT);
-		offscreenFbo.attachTexture(uv2PassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT2_EXT);
+		offscreenFbo.attachTexture(uv2PassTextureID, GL30.GL_RGBA16F, GL_NEAREST, GL_COLOR_ATTACHMENT2_EXT);
 		
 
 		shader1 = new Shader("firstPass");
@@ -71,7 +74,7 @@ public class App
 		
 		texture = new Texture("house.png", Texture.DIFFUSE);
 		texture2 = new Texture("colors2.png", Texture.LIGHTMAP);
-		texture3 = new Texture(256, 256, Texture.IMAGE_BUFFER);
+		texture3 = new Texture(1024, 1024, Texture.IMAGE_BUFFER);
 		
 		mesh = new Mesh("house.mrs");
 		mesh2 = new Mesh("plane.mrs");
@@ -86,7 +89,7 @@ public class App
 		
 		
 		offscreenFbo.bind();
-		glViewport(0, 0, 256, 256);
+//		glViewport(0, 0, 1024, 1024);
 		
 		camera.clearScreen();
 //		shader1.setActive();
@@ -144,7 +147,7 @@ public class App
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferBlit.GL_READ_FRAMEBUFFER_EXT, offscreenFbo.framebufferID);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferBlit.GL_DRAW_FRAMEBUFFER_EXT, 0);
 		
-		EXTFramebufferBlit.glBlitFramebufferEXT(0, 0, 256, 256, 0, 0, 256, 256, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
+		EXTFramebufferBlit.glBlitFramebufferEXT(0, 0, 1024, 1024, 0, 0, 256, 256, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
 	}
 	
@@ -152,7 +155,7 @@ public class App
 	{
 		offscreenFbo.bind();
 		offscreenFbo.setMultTarget();
-		glViewport(0, 0, 256, 256);
+		glViewport(0, 0, 1024, 1024);
 		
 		camera.clearScreen();
 		

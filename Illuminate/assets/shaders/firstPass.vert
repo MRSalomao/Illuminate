@@ -24,5 +24,5 @@ void main()
 	p_eye = (viewMatrix * modelMatrix * in_Position).xyz;
 	n_eye = (viewMatrix * modelMatrix * in_Normal).xyz;
 	
-	gl_Position = projectionMatrix * vec4 (p_eye, 1.0);
+	gl_Position = projectionMatrix * vec4(p_eye, 1.0);
 }

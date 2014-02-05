@@ -41,19 +41,20 @@ public class Texture
 	{
 		this.type = type;
 		
-		int size = 1;
-		IntBuffer buf = BufferUtils.createByteBuffer(width*height*size*4).asIntBuffer();
-		for (int i = 0; i < width*height*size; i++) buf.put(1);
+		int size = 4;
+		IntBuffer buf = BufferUtils.createByteBuffer(width*height*size).asIntBuffer();
+		for (int i = 0; i < width*height; i++) buf.put(0);
 		buf.flip();
 		
 		texId = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, texId);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, buf);
+		Utils.exitOnGLError("setupImageTexture-glTexImage2D");
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				
 		GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
 		
 		Utils.exitOnGLError("setupImageTexture");
@@ -123,7 +124,7 @@ public class Texture
 		{
 			glBindTexture(GL_TEXTURE_2D, 0);
 			
-			GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+			GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
 		}
 		else
 		{
