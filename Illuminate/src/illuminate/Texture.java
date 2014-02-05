@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL42;
@@ -40,19 +41,22 @@ public class Texture
 	{
 		this.type = type;
 		
-		FloatBuffer buf = BufferUtils.createByteBuffer(width*height*4*4).asFloatBuffer();
-		for (int i = 0; i < width*height*4; i++) buf.put(0f);
+		int size = 1;
+		IntBuffer buf = BufferUtils.createByteBuffer(width*height*size*4).asIntBuffer();
+		for (int i = 0; i < width*height*size; i++) buf.put(1);
 		buf.flip();
 		
 		texId = glGenTextures();
 		glBindTexture(GL_TEXTURE_2D, texId);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, buf);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, width, height, 0, GL_RED_INTEGER, GL_INT, buf);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		
 //		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 //		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		
-		GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_RGBA32F);
+		GL42.glBindImageTexture(3, texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
+		
+		Utils.exitOnGLError("setupImageTexture");
 	}
 	
 	
