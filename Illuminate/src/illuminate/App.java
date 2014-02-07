@@ -56,17 +56,17 @@ public class App
 		
 		offscreenFbo = new OffscreenFBO(1024, 1024, true);
 		
-		normalTextureID = glGenTextures();	
-		positionTextureID = glGenTextures();	
-		blackWhiteTextureID = glGenTextures();	
+//		normalTextureID = glGenTextures();	
+//		positionTextureID = glGenTextures();	
+//		blackWhiteTextureID = glGenTextures();	
 		
 		normalPassTextureID = glGenTextures();	
 		positionPassTextureID = glGenTextures();	
 		uv2PassTextureID = glGenTextures();	
 		
-		offscreenFbo.attachTexture(normalPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT1_EXT);
-		offscreenFbo.attachTexture(positionPassTextureID, GL_RGBA8, GL_NEAREST, GL_COLOR_ATTACHMENT0_EXT);
-		offscreenFbo.attachTexture(uv2PassTextureID, GL30.GL_RGBA16F, GL_NEAREST, GL_COLOR_ATTACHMENT2_EXT);
+		offscreenFbo.attachTexture(normalPassTextureID, GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT1_EXT);
+		offscreenFbo.attachTexture(positionPassTextureID, GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT0_EXT);
+		offscreenFbo.attachTexture(uv2PassTextureID, GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT2_EXT);
 		
 
 		shader1 = new Shader("firstPass");
