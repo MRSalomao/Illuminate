@@ -11,7 +11,9 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL12.*;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.EXTFramebufferBlit;
 import org.lwjgl.opengl.EXTFramebufferObject;
 import org.lwjgl.opengl.GL11;
@@ -149,6 +151,11 @@ public class App
 		
 		EXTFramebufferBlit.glBlitFramebufferEXT(0, 0, 1024, 1024, 0, 0, 256, 256, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
 		EXTFramebufferObject.glBindFramebufferEXT(EXTFramebufferObject.GL_FRAMEBUFFER_EXT, 0);
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
+		{
+			System.exit(0);
+		}
 	}
 	
 	void draw()

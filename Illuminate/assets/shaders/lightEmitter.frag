@@ -18,32 +18,31 @@ void main(void)
 	ivec2 coord256 = ivec2(coord * 1024.0);
 	
 
-	//int luminance = imageLoad(output_buffer, coord256);
+	int luminance = imageLoad(output_buffer, coord256);
 
 	//luminance += vec4(1) * 0.00001;
 
-	//imageStore(output_buffer, coord256, ivec4(luminance+1));
+	imageStore(output_buffer, coord256, ivec4(luminance+1));
 	
 	if ( coord256 != ivec2(0,0) )
 	{
-		int luminance = imageAtomicAdd(output_buffer, coord256, 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(0,1), 1);
+		//int luminance = imageAtomicAdd(output_buffer, coord256, 1);
+		/*imageAtomicAdd(output_buffer, coord256+ivec2(0,1), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(1,0), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(1,1), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(0,-1), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(-1,0), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(-1,-1), 1);
 		imageAtomicAdd(output_buffer, coord256+ivec2(-1,1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(1,-1), 1);
+		imageAtomicAdd(output_buffer, coord256+ivec2(1,-1), 1);*/
 	
-		out_Color = vec4(float(luminance) * .00001);
-		
+		out_Color = vec4(float(luminance) * .00005);
 	}
 	else
 	{
 		out_Color = vec4(0.2, 0.3, 0.7, 1.0);
 	}
 	
-	//out_Color = vec4((imageLoad(output_buffer, ivec2(gl_FragCoord.xy) ).x * .001)[int(coord256) % 4]);
+	//out_Color = vec4((imageLoad(output_buffer, ivec2(gl_FragCoord.xy) ).x * .00005).x);
 	//out_Color = texture2D(texture_diffuse2, pass_TextureCoord1);
 }
