@@ -26,7 +26,7 @@ public class OffscreenFBO
 		this.width = width;
 		this.height = height;
 		
-		// Create an extra FBO for offscreen rendering
+		// Create the FBO
 		framebufferID = glGenFramebuffersEXT();	
 		depthRenderBufferID = glGenRenderbuffersEXT();			
 		
@@ -114,6 +114,7 @@ public class OffscreenFBO
 	
 	public void destroy()
 	{
+		glDeleteRenderbuffersEXT(depthRenderBufferID);
 		glDeleteFramebuffersEXT(framebufferID);
 	}
 }

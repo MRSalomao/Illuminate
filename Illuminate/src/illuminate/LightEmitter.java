@@ -25,6 +25,7 @@ import illuminate.engine.Texture;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GL42;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -36,7 +37,7 @@ public class LightEmitter
 	
 	int normalPassTextureID, positionPassTextureID, uv2PassTextureID;
 	
-	Node lightNode; Mesh lightsMesh; Texture lightTexture;
+	public Node lightNode; Mesh lightsMesh; Texture lightTexture;
 	
 	public Node targetNode; Mesh targetMesh; public Texture targetDiffuse, targetLightmap;
 	
@@ -44,7 +45,7 @@ public class LightEmitter
 	
 	Shader firstPass, emitLight, lightConfigurer;
 	
-	OffscreenFBO offscreenFbo;
+	OffscreenFBO offscreenFbo1, offscreenFbo2;
 	
 	public int samplerWidth, samplerHeight;
 	public int emissionWidth, emissionHeight;
@@ -55,6 +56,7 @@ public class LightEmitter
 		offscreenCamera = new Camera(new Vector3f(0,0,0));
 		
 		lightsMesh = new Mesh("lights.mrs");
+		lightTexture = new Texture("white.png", Texture.DIFFUSE);
 		lightNode = new Node(lightsMesh, lightTexture);
 		
 		lightConfigurer = new Shader("lightConfigurer");
@@ -84,7 +86,9 @@ public class LightEmitter
 		tmpOffscreenFbo.bind();
 		tmpOffscreenFbo.setMultTarget();
 		
-		App.singleton.mainCamera.clearScreen();
+		offscreenCamera.setActive();
+		offscreenCamera.clearScreen();
+		
 		lightConfigurer.setActive();
 		lightNode.render();
 		
@@ -118,11 +122,12 @@ public class LightEmitter
 		this.emissionWidth  = emissionWidth;
 		this.emissionHeight = emissionHeight;
 		
-		offscreenFbo = new OffscreenFBO(emissionWidth, emissionHeight, true);
-		
-		offscreenFbo.attachTexture(positionPassTextureID, GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT0_EXT);
-		offscreenFbo.attachTexture(normalPassTextureID,   GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT1_EXT);
-		offscreenFbo.attachTexture(uv2PassTextureID,      GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT2_EXT);
+		offscreenFbo1 = new OffscreenFBO(emissionWidth, emissionHeight, true);
+		offscreenFbo2 = new OffscreenFBO(emissionWidth, emissionHeight, false);
+
+		offscreenFbo1.attachTexture(positionPassTextureID, GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT0_EXT);
+		offscreenFbo1.attachTexture(normalPassTextureID,   GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT1_EXT);
+		offscreenFbo1.attachTexture(uv2PassTextureID,      GL_RGBA32F, GL_LINEAR, GL_COLOR_ATTACHMENT2_EXT);
 		
 		
 		firstPass = new Shader("firstPass");
@@ -131,10 +136,16 @@ public class LightEmitter
 		targetDiffuse = new Texture("house.png", Texture.DIFFUSE);
 		targetLightmap = new Texture(emissionWidth, emissionHeight, Texture.IMAGE_BUFFER);
 		
+		targetLightmap.setActive();
+		
 		targetMesh = new Mesh("house.mrs");
 		quadMesh = new Mesh("quad.mrs");
 
 		targetNode = new Node(targetMesh, targetDiffuse);
+		
+		//TODO
+		OffscreenFBO tmpFBO = new OffscreenFBO(emissionWidth, emissionHeight, false);
+		tmpFBO.attachTexture(positionPassTextureID, GL11.GL_RGBA8, GL_LINEAR, GL_COLOR_ATTACHMENT0_EXT);
 	}
 	
 	public boolean emitLightFromSample()
@@ -151,12 +162,19 @@ public class LightEmitter
 			executeFirstPass();
 			executeFinalPass();
 		}
+		else
+		{
+			currentSample++;
+			
+			return false;
+		}
 		
 		currentSample++;
 		
 		return true;
 	}
 	
+	float perturbation = .3f;
 	void calibrateCamera()
 	{
 		offscreenCamera.setActive();
@@ -167,45 +185,59 @@ public class LightEmitter
 		
 		Vector3f dir = new Vector3f(lightNormalsBuffer.get(currentSample * 4 + 0), 
 									lightNormalsBuffer.get(currentSample * 4 + 1), 
-									lightNormalsBuffer.get(currentSample * 4 + 2));
+									lightNormalsBuffer.get(currentSample * 4 + 2)); System.out.println(eye + " " + dir);
+									
+		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
+										( (float) Math.random() - 0.5f ) * perturbation,
+										( (float) Math.random() - 0.5f ) * perturbation), dir);
 		
 		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1));
 	}
 	
 	void executeFirstPass()
 	{
-		offscreenFbo.bind();
-		offscreenFbo.setMultTarget();
+		offscreenFbo1.bind();
+		offscreenFbo1.setMultTarget();
 		
 		offscreenCamera.clearScreen();
 		
 		firstPass.setActive();
 		
 		targetNode.render();
-		
-		offscreenFbo.setSingleTarget();
-		offscreenFbo.unbind();
+
+		offscreenFbo1.setSingleTarget();
+		offscreenFbo1.unbind();
 	}
 	
 	void executeFinalPass()
 	{
-		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
+		offscreenCamera.clearScreen();
+		
+//		glActiveTexture(GL_TEXTURE0 + 0);
+//		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
+//		glActiveTexture(GL_TEXTURE0 + 1);
+//		glBindTexture(GL_TEXTURE_2D, normalPassTextureID);
 		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_2D, positionPassTextureID);
-		glActiveTexture(GL_TEXTURE0 + 0);
 		glBindTexture(GL_TEXTURE_2D, uv2PassTextureID);
 		
 		emitLight.setActive();
 		
 		quadMesh.render();
 		
-		glActiveTexture(GL_TEXTURE0 + 1);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0 + 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_2D, 0);
+//		glActiveTexture(GL_TEXTURE0 + 0);
+//		glBindTexture(GL_TEXTURE_2D, 0);
+//		glActiveTexture(GL_TEXTURE0 + 1);
+//		glBindTexture(GL_TEXTURE_2D, 0);
+//		glActiveTexture(GL_TEXTURE0 + 2);
+//		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	
+	int genCornerNormalizer()
+	{
+		int cnTextureID = glGenTextures();
+		
+		
+		return cnTextureID;
 	}
 	
 }

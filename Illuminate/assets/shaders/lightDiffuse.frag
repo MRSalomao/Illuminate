@@ -12,10 +12,7 @@ out vec4 out_Color;
 
 void main(void) 
 {
-
- 
- 
-	float intensity = imageLoad(output0, ivec2(pass_TextureCoord2*256) )  * .000005;
+	float intensity = texture(texture_diffuse0, pass_TextureCoord1);
 
 	out_Color =  vec4(intensity);//pass_TextureCoord2*64));
 }

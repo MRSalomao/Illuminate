@@ -22,7 +22,7 @@ public class Utils
 		return degrees * (float)(PI / 180d);
 	}
 	
-	static void exitOnGLError(String errorMessage) 
+	public static void exitOnGLError(String errorMessage) 
 	{
 		int errorValue = GL11.glGetError();
 		

@@ -36,12 +36,12 @@ public class App
 {
 	public static App singleton;
 	
-	public int canvasWidth = 1024, canvasHeight = 1024;
+	public int canvasWidth = 1024, canvasHeight = 728;
 	
 	public Camera mainCamera;
 	FpsCameraHandler fpsCameraHandler;
 	
-	Shader diffuse;
+	Shader diffuse, lightDiffuse;
 	
 	LightEmitter lightEmitter;
 	
@@ -49,36 +49,55 @@ public class App
 	{
 		mainCamera = new Camera(new Vector3f(-10,0,0));
 		mainCamera.clearScreenColor(0.0f);
-		mainCamera.setActive();
 		fpsCameraHandler = new FpsCameraHandler(mainCamera);
 		
 		diffuse = new Shader("diffuse");
+		lightDiffuse = new Shader("lightDiffuse");
 		
-//		lightEmitter = new LightEmitter();
-//		lightEmitter.setupLightSampler(64, 64);
-//		lightEmitter.setupEmissionRender(256, 256);
+		lightEmitter = new LightEmitter();
+		lightEmitter.setupLightSampler(32, 32);
+		lightEmitter.setupEmissionRender(1024, 1024);
 		
-		//while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
-		
-
-		targetNode = new Node(new Mesh("house.mrs"), new Texture("house.png", Texture.DIFFUSE));
+//		while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
 	}
-	Node targetNode;
+	
 	public void render(float dt)
 	{
-		glViewport(0, 0, 1024, 1024); //TODO needed?
+		if(!lightEmitter.emitLightFromSample())
+		{
+			mainCamera.setActive();
+			fpsCameraHandler.update(dt);
+			Camera.activeCamera.clearScreen();
+			
+			diffuse.setActive();
+			
+			lightEmitter.targetNode.render();
+			
+			lightDiffuse.setActive();
+			
+			glDisable(GL_CULL_FACE);
+			lightEmitter.lightNode.render();
+			glEnable(GL_CULL_FACE);
+		}
 		
-		mainCamera.setActive();
-		mainCamera.clearScreen();
-		
-		fpsCameraHandler.update(dt);
-		
-		diffuse.setActive();
+		System.out.println(lightEmitter.currentSample);
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+//		mainCamera.setActive();
+//		mainCamera.clearScreen();
+//		
+//		fpsCameraHandler.update(dt);
+//		
+//		diffuse.setActive();
 
 //		lightEmitter.targetLightmap.type = Texture.LIGHTMAP;
 //		lightEmitter.targetNode.setLightmap(lightEmitter.targetNode.lightmap);
 		
-		targetNode.render();
+//		lightEmitter.targetNode.render();
 		
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
 		{

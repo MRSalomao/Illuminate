@@ -90,8 +90,6 @@ public class Shader
 		Utils.exitOnGLError("Shader-setActive");
 	}
 	
-	
-	
 	private int loadShader(String filename, int type) 
 	{
 		StringBuilder shaderSource = new StringBuilder();

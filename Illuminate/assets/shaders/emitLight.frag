@@ -15,34 +15,34 @@ layout (binding=3, size1x32) uniform iimage2D output_buffer;
 void main(void) 
 {
 	vec2 coord = vec2(texture(texture_diffuse2, pass_TextureCoord1));
-	ivec2 coord256 = ivec2(coord * 1024.0);
+	ivec2 coordInt = ivec2(coord * 256.0);
 	
 
-	int luminance = imageLoad(output_buffer, coord256);
+	//int luminance = imageLoad(output_buffer, coordInt);
 
 	//luminance += vec4(1) * 0.00001;
 
-	imageStore(output_buffer, coord256, ivec4(luminance+1));
+	//imageStore(output_buffer, coordInt, ivec4(luminance+1));
 	
-	if ( coord256 != ivec2(0,0) )
+	if ( coordInt != ivec2(0,0) )
 	{
-		//int luminance = imageAtomicAdd(output_buffer, coord256, 1);
-		/*imageAtomicAdd(output_buffer, coord256+ivec2(0,1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(1,0), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(1,1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(0,-1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(-1,0), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(-1,-1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(-1,1), 1);
-		imageAtomicAdd(output_buffer, coord256+ivec2(1,-1), 1);*/
+		int luminance = imageAtomicAdd(output_buffer, coordInt, 1);
+		/*imageAtomicAdd(output_buffer, coordInt+ivec2(0,1), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(1,0), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(1,1), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(0,-1), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(-1,0), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(-1,-1), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(-1,1), 1);
+		imageAtomicAdd(output_buffer, coordInt+ivec2(1,-1), 1);*/
 	
-		out_Color = vec4(float(luminance) * .00005);
+		out_Color = vec4(float(luminance) * .0000005);
 	}
 	else
 	{
 		out_Color = vec4(0.2, 0.3, 0.7, 1.0);
 	}
 	
-	//out_Color = vec4((imageLoad(output_buffer, ivec2(gl_FragCoord.xy) ).x * .00005).x);
-	//out_Color = texture(texture_diffuse1, pass_TextureCoord1);
+	//out_Color = vec4((imageLoad(output_buffer, ivec2(gl_FragCoord.xy) ).x * .5).x);
+	//out_Color = texture(texture_diffuse2, pass_TextureCoord1);
 }
