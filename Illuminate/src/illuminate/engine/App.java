@@ -54,13 +54,16 @@ public class App
 		
 		diffuse = new Shader("diffuse");
 		
-		lightEmitter = new LightEmitter();
-		lightEmitter.setupLightSampler(64, 64);
-		lightEmitter.setupEmissionRender(256, 256);
+//		lightEmitter = new LightEmitter();
+//		lightEmitter.setupLightSampler(64, 64);
+//		lightEmitter.setupEmissionRender(256, 256);
 		
-		while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
+		//while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
+		
+
+		targetNode = new Node(new Mesh("house.mrs"), new Texture("house.png", Texture.DIFFUSE));
 	}
-	
+	Node targetNode;
 	public void render(float dt)
 	{
 		glViewport(0, 0, 1024, 1024); //TODO needed?
@@ -72,10 +75,10 @@ public class App
 		
 		diffuse.setActive();
 
-		lightEmitter.targetLightmap.type = Texture.LIGHTMAP;
-		lightEmitter.targetNode.setLightmap(lightEmitter.targetNode.lightmap);
+//		lightEmitter.targetLightmap.type = Texture.LIGHTMAP;
+//		lightEmitter.targetNode.setLightmap(lightEmitter.targetNode.lightmap);
 		
-		lightEmitter.targetNode.render();
+		targetNode.render();
 		
 		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE))
 		{
