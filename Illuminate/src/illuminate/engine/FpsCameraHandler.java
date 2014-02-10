@@ -95,8 +95,8 @@ public class FpsCameraHandler
 				camera.rotation.z -= dt*0.001f;
 			}
 			
-			camera.rotation.z -= Mouse.getDX()*dt*0.001;
-			camera.rotation.x += Mouse.getDY()*dt*0.001;
+			camera.rotation.z -= Mouse.getDX()*0.0015;
+			camera.rotation.x += Mouse.getDY()*0.0015;
 			
 			if (camera.rotation.x < -Utils.PI2+0.01)
 			{
