@@ -1,4 +1,4 @@
-package illuminate;
+package illuminate.engine;
 
 public class VertexData 
 {

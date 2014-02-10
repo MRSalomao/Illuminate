@@ -1,4 +1,4 @@
-package illuminate;
+package illuminate.engine;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -76,11 +76,11 @@ public class Shader
 		
 		glUseProgram(programId);
 		
-		App.camera.projectionMatrix.store(App.camera.matrix44Buffer); App.camera.matrix44Buffer.flip();
-		glUniformMatrix4(projectionMatrixLocation, false, App.camera.matrix44Buffer);
+		Camera.activeCamera.projectionMatrix.store(Camera.activeCamera.matrix44Buffer); Camera.activeCamera.matrix44Buffer.flip();
+		glUniformMatrix4(projectionMatrixLocation, false, Camera.activeCamera.matrix44Buffer);
 
-		App.camera.viewMatrix.store(App.camera.matrix44Buffer); App.camera.matrix44Buffer.flip();
-		glUniformMatrix4(viewMatrixLocation, false, App.camera.matrix44Buffer);
+		Camera.activeCamera.viewMatrix.store(Camera.activeCamera.matrix44Buffer); Camera.activeCamera.matrix44Buffer.flip();
+		glUniformMatrix4(viewMatrixLocation, false, Camera.activeCamera.matrix44Buffer);
 		
 		glUniform1i(tex0Location, 0);
 		glUniform1i(tex1Location, 1);

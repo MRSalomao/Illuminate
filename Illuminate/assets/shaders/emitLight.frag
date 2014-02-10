@@ -44,5 +44,5 @@ void main(void)
 	}
 	
 	//out_Color = vec4((imageLoad(output_buffer, ivec2(gl_FragCoord.xy) ).x * .00005).x);
-	//out_Color = texture2D(texture_diffuse2, pass_TextureCoord1);
+	//out_Color = texture(texture_diffuse1, pass_TextureCoord1);
 }

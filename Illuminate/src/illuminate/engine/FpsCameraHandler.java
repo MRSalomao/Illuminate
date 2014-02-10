@@ -1,4 +1,4 @@
-package illuminate;
+package illuminate.engine;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;

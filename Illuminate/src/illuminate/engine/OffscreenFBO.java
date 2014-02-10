@@ -1,4 +1,4 @@
-package illuminate.internal;
+package illuminate.engine;
 
 import static org.lwjgl.opengl.EXTFramebufferObject.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -19,9 +19,9 @@ public class OffscreenFBO
 {
 	public int framebufferID, depthRenderBufferID;
 	
-	int width, height;
+	public int width, height;
 	
-	public OffscreenFBO(int width, int height, boolean hasDepthbuffer)
+	public OffscreenFBO(int width, int height, boolean useDepthbuffer)
 	{
 		this.width = width;
 		this.height = height;
@@ -30,7 +30,7 @@ public class OffscreenFBO
 		framebufferID = glGenFramebuffersEXT();	
 		depthRenderBufferID = glGenRenderbuffersEXT();			
 		
-		if (hasDepthbuffer) attachDepthbuffer();
+		if (useDepthbuffer) attachDepthbuffer();
 	}
 	
 	public void attachTexture(int colorTextureID)
@@ -100,11 +100,20 @@ public class OffscreenFBO
 	
 	public void bind()
 	{
+		glViewport(0, 0, width, height);
+		
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, framebufferID); 	
 	}
 	
 	public void unbind()
 	{
+		glViewport(0, 0, App.singleton.canvasWidth, App.singleton.canvasHeight);
+		
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	}
+	
+	public void destroy()
+	{
+		glDeleteFramebuffersEXT(framebufferID);
 	}
 }

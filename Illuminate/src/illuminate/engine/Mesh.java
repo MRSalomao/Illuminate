@@ -1,4 +1,4 @@
-package illuminate;
+package illuminate.engine;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -128,7 +128,7 @@ public class Mesh
 	}
 	
 	
-	void render() 
+	public void render() 
 	{
 		glBindVertexArray(vaoId);
 		

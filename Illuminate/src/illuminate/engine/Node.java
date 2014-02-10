@@ -1,4 +1,4 @@
-package illuminate;
+package illuminate.engine;
 
 import java.nio.FloatBuffer;
 
