@@ -45,6 +45,8 @@ public class App
 	
 	LightEmitter lightEmitter;
 	
+	int edgeNormalizerTexture;
+	
 	public void init()
 	{
 		mainCamera = new Camera(new Vector3f(-10,0,0));
@@ -55,8 +57,10 @@ public class App
 		lightDiffuse = new Shader("lightDiffuse");
 		
 		lightEmitter = new LightEmitter();
-		lightEmitter.setupLightSampler(32, 32);
+		lightEmitter.setupLightSampler(16, 16);
 		lightEmitter.setupEmissionRender(1024, 1024);
+		
+		edgeNormalizerTexture = lightEmitter.genEdgeNormalizer();
 		
 //		while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
 	}
@@ -70,6 +74,9 @@ public class App
 			Camera.activeCamera.clearScreen();
 			
 			diffuse.setActive();
+			
+			glActiveTexture(GL_TEXTURE0 + 4);
+//			glBindTexture(GL_TEXTURE_2D, edgeNormalizerTexture);
 			
 			lightEmitter.targetNode.render();
 			

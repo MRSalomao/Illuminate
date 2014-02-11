@@ -3,6 +3,7 @@ package illuminate;
 import static org.lwjgl.opengl.EXTFramebufferObject.GL_COLOR_ATTACHMENT0_EXT;
 import static org.lwjgl.opengl.EXTFramebufferObject.GL_COLOR_ATTACHMENT1_EXT;
 import static org.lwjgl.opengl.EXTFramebufferObject.GL_COLOR_ATTACHMENT2_EXT;
+import static org.lwjgl.opengl.EXTFramebufferObject.glDeleteFramebuffersEXT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
@@ -22,10 +23,13 @@ import illuminate.engine.Node;
 import illuminate.engine.OffscreenFBO;
 import illuminate.engine.Shader;
 import illuminate.engine.Texture;
+import illuminate.engine.Utils;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.GL32;
 import org.lwjgl.opengl.GL42;
 import org.lwjgl.util.vector.Vector3f;
 
@@ -43,7 +47,7 @@ public class LightEmitter
 	
 	Mesh quadMesh;
 	
-	Shader firstPass, emitLight, lightConfigurer;
+	Shader firstPass, emitLight, lightConfigurer, edgeNormalizer;
 	
 	OffscreenFBO offscreenFbo1, offscreenFbo2;
 	
@@ -60,6 +64,7 @@ public class LightEmitter
 		lightNode = new Node(lightsMesh, lightTexture);
 		
 		lightConfigurer = new Shader("lightConfigurer");
+		edgeNormalizer = new Shader("edgeNormalizer");
 		
 		normalPassTextureID = glGenTextures();	
 		positionPassTextureID = glGenTextures();	
@@ -142,10 +147,6 @@ public class LightEmitter
 		quadMesh = new Mesh("quad.mrs");
 
 		targetNode = new Node(targetMesh, targetDiffuse);
-		
-		//TODO
-		OffscreenFBO tmpFBO = new OffscreenFBO(emissionWidth, emissionHeight, false);
-		tmpFBO.attachTexture(positionPassTextureID, GL11.GL_RGBA8, GL_LINEAR, GL_COLOR_ATTACHMENT0_EXT);
 	}
 	
 	public boolean emitLightFromSample()
@@ -232,10 +233,28 @@ public class LightEmitter
 //		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	
-	int genCornerNormalizer()
+	public int genEdgeNormalizer()
 	{
+		int fboID = GL30.glGenFramebuffers();
+		GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, fboID);
+
+		glActiveTexture(GL_TEXTURE0 + 4);
 		int cnTextureID = glGenTextures();
+		GL11.glBindTexture(GL32.GL_TEXTURE_2D_MULTISAMPLE, cnTextureID);
+		GL32.glTexImage2DMultisample(GL32.GL_TEXTURE_2D_MULTISAMPLE, 8, GL11.GL_RGBA8, emissionWidth, emissionHeight, true);
+
+		GL32.glFramebufferTexture(GL30.GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0_EXT, cnTextureID, 0);
 		
+		edgeNormalizer.setActive();
+		
+		Camera.activeCamera.clearScreenColor(1.0f);
+		Camera.activeCamera.clearScreen();
+		
+		targetNode.render();
+		
+		Camera.activeCamera.clearScreenColor(0.0f);
+		
+		glDeleteFramebuffersEXT(fboID);
 		
 		return cnTextureID;
 	}
