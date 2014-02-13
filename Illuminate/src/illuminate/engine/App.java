@@ -1,6 +1,6 @@
 package illuminate.engine;
 
-import illuminate.LightEmitter;
+import illuminate.Lightmapper;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -36,16 +36,16 @@ public class App
 {
 	public static App singleton;
 	
-	public int canvasWidth = 1024, canvasHeight = 728;
+	static public int canvasWidth = 1024, canvasHeight = 1024;
 	
 	public Camera mainCamera;
 	FpsCameraHandler fpsCameraHandler;
 	
-	Shader diffuse, lightDiffuse;
+	Shader diffuseShader, lightDiffuseShader;
 	
-	LightEmitter lightEmitter;
+	Lightmapper lightmapper;
 	
-	int edgeNormalizerTexture;
+	//int edgeNormalizerTexture;
 	
 	public void init()
 	{
@@ -53,47 +53,53 @@ public class App
 		mainCamera.clearScreenColor(0.0f);
 		fpsCameraHandler = new FpsCameraHandler(mainCamera);
 		
-		diffuse = new Shader("diffuse");
-		lightDiffuse = new Shader("lightDiffuse");
+		diffuseShader = new Shader("diffuse");
+		lightDiffuseShader = new Shader("lightDiffuse");
 		
-		lightEmitter = new LightEmitter();
-		lightEmitter.setupLightSampler(16, 16);
-		lightEmitter.setupEmissionRender(1024, 1024);
+		lightmapper = new Lightmapper();
+		lightmapper.setupLightSampler(32, 32);
+		lightmapper.setupEmissionRender(512, 512);
+		lightmapper.genEdgeNormalizer2();
 		
-		edgeNormalizerTexture = lightEmitter.genEdgeNormalizer();
-		
+		startTime = System.currentTimeMillis();
 //		while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
 	}
-	
+	long startTime; boolean done;//TODO, 
 	public void render(float dt)
 	{
-		if(!lightEmitter.emitLightFromSample())
+		if(!lightmapper.emitLightFromSample())
 		{
+			if (!done)
+			{
+				System.out.println("DONE: " + (System.currentTimeMillis() - startTime) );
+				done = true;
+			}
+			
 			mainCamera.setActive();
 			fpsCameraHandler.update(dt);
 			Camera.activeCamera.clearScreen();
 			
-			diffuse.setActive();
+			diffuseShader.setActive();
 			
 			glActiveTexture(GL_TEXTURE0 + 4);
 //			glBindTexture(GL_TEXTURE_2D, edgeNormalizerTexture);
 			
-			lightEmitter.targetNode.render();
+			lightmapper.targetNode.render();
 			
-			lightDiffuse.setActive();
+			lightDiffuseShader.setActive();
 			
 			glDisable(GL_CULL_FACE);
-			lightEmitter.lightNode.render();
+			lightmapper.lightNode.render();
 			glEnable(GL_CULL_FACE);
 		}
 		
-		System.out.println(lightEmitter.currentSample);
-		try {
-			Thread.sleep(1);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		System.out.println(lightmapper.currentSample);
+//		try {
+//			Thread.sleep(1);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 //		mainCamera.setActive();
 //		mainCamera.clearScreen();
 //		

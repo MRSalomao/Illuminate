@@ -1,6 +1,6 @@
 #version 430 core
 
-uniform sampler2D texture_diffuse0;
+uniform float alpha;
 //uniform sampler2D texture_diffuse1;
 layout (binding=3, size1x32) uniform iimage2D output0;
 
@@ -12,5 +12,5 @@ out vec4 out_Color;
 
 void main(void) 
 {
-	out_Color = vec4(0,0,0,1);
+	out_Color = vec4(alpha);
 }

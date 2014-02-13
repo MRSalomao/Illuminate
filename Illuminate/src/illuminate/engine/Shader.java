@@ -20,7 +20,9 @@ public class Shader
 	
 	int programId;
 	
-	int tex0Location, tex1Location, tex2Location, imageTexLocation;
+	public int tex0Location, tex1Location, tex2Location, imageTexLocation;
+	
+	public int iLocation, jLocation, alphaLocation;
 	
 	boolean useTex1;
 	
@@ -64,6 +66,10 @@ public class Shader
 		tex0Location = glGetUniformLocation(programId, "texture_diffuse0");
 		tex1Location = glGetUniformLocation(programId, "texture_diffuse1");
 		tex2Location = glGetUniformLocation(programId, "texture_diffuse2");
+		
+		iLocation = glGetUniformLocation(programId, "i");
+		jLocation = glGetUniformLocation(programId, "j");
+		alphaLocation = glGetUniformLocation(programId, "alpha");
 		
 		imageTexLocation = glGetUniformLocation(programId, "output_buffer");
 
