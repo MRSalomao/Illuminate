@@ -15,9 +15,9 @@ import static org.lwjgl.opengl.GL30.*;
 public class Node 
 {
 	Matrix4f modelMatrix;
-	Vector3f position;
-	Vector3f rotation;
-	Vector3f scale;
+	public Vector3f position;
+	public Vector3f rotation;
+	public Vector3f scale;
 	
 	FloatBuffer matrix44Buffer;
 	

@@ -4,6 +4,7 @@ import static org.lwjgl.opengl.EXTFramebufferObject.*;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 import illuminate.engine.App;
 import illuminate.engine.Camera;
@@ -17,14 +18,16 @@ import illuminate.engine.Utils;
 import org.lwjgl.BufferUtils;
 
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
+import static org.lwjgl.opengl.GL12.*;
 import static org.lwjgl.opengl.GL13.*;
 import static org.lwjgl.opengl.GL14.*;
+import static org.lwjgl.opengl.GL15.GL_READ_WRITE;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL32.*;
 import static org.lwjgl.opengl.GL42.*;
 
+import org.lwjgl.opengl.GL42;
 import org.lwjgl.util.vector.Vector3f;
 
 public class Lightmapper 
@@ -32,6 +35,8 @@ public class Lightmapper
 	Camera offscreenCamera;
 	
 	FloatBuffer lightSamplesBuffer, lightPositionsBuffer, lightNormalsBuffer;
+	FloatBuffer modelSamplesBuffer, modelPositionsBuffer, modelNormalsBuffer;
+	IntBuffer modelLightingBuffer;
 	
 	int normalPassTextureID, positionPassTextureID, uv2PassTextureID;
 	
@@ -45,9 +50,11 @@ public class Lightmapper
 	
 	OffscreenFBO offscreenFbo;
 	
-	public int samplerWidth, samplerHeight;
+	public int lightSamplerWidth, lightSamplerHeight;
+	public int modelSamplerWidth, modelSamplerHeight;
 	public int emissionWidth, emissionHeight;
-	public int currentSample, totalTexels;
+	public int lightCurrentSample, totalLightTexels;
+	public int modelCurrentSample, totalModelTexels;
 	
 	public Lightmapper()
 	{
@@ -68,10 +75,10 @@ public class Lightmapper
 	
 	public void setupLightSampler(int samplerWidth, int samplerHeight)
 	{
-		this.samplerWidth  = samplerWidth;
-		this.samplerHeight = samplerHeight;
+		this.lightSamplerWidth  = samplerWidth;
+		this.lightSamplerHeight = samplerHeight;
 		
-		totalTexels = samplerWidth * samplerHeight;
+		totalLightTexels = samplerWidth * samplerHeight;
 		
 		OffscreenFBO tmpOffscreenFbo = new OffscreenFBO(samplerWidth, samplerHeight, false);
 		
@@ -117,6 +124,64 @@ public class Lightmapper
 		tmpOffscreenFbo.destroy();
 	}
 	
+	public void setupModelSampler(int samplerWidth, int samplerHeight)
+	{
+		this.modelSamplerWidth  = samplerWidth;
+		this.modelSamplerHeight = samplerHeight;
+		
+		totalModelTexels = samplerWidth * samplerHeight;
+		
+		OffscreenFBO tmpOffscreenFbo = new OffscreenFBO(samplerWidth, samplerHeight, false);
+		
+		int lightNormalID = glGenTextures();	
+		int lightPositionID = glGenTextures();	
+		int lightSamplerID = glGenTextures();	
+		
+		tmpOffscreenFbo.attachTexture(lightSamplerID,  GL_RGBA32F, GL_NEAREST, GL_COLOR_ATTACHMENT0_EXT);
+		tmpOffscreenFbo.attachTexture(lightPositionID, GL_RGBA32F, GL_NEAREST, GL_COLOR_ATTACHMENT1_EXT);
+		tmpOffscreenFbo.attachTexture(lightNormalID,   GL_RGBA32F, GL_NEAREST, GL_COLOR_ATTACHMENT2_EXT);
+		
+		tmpOffscreenFbo.bind();
+		tmpOffscreenFbo.setMultTarget();
+		
+		offscreenCamera.setActive();
+		offscreenCamera.clearScreen();
+		
+		lightConfigurer.setActive();
+		targetNode.render();
+		
+		int width  = tmpOffscreenFbo.width;
+		int height = tmpOffscreenFbo.height;
+		int bpp = 16;
+		
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); // write lighting teximage to here! - create a new shader, similar to lightCfgr, the "modelCfgr" TODO
+		modelSamplesBuffer = BufferUtils.createByteBuffer(width * height * bpp).asFloatBuffer();
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, modelSamplesBuffer);
+		
+		glReadBuffer(GL_COLOR_ATTACHMENT1_EXT);
+		modelPositionsBuffer = BufferUtils.createByteBuffer(width * height * bpp).asFloatBuffer();
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, modelPositionsBuffer);
+		
+		glReadBuffer(GL_COLOR_ATTACHMENT2_EXT);
+		modelNormalsBuffer = BufferUtils.createByteBuffer(width * height * bpp).asFloatBuffer();
+		glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, modelNormalsBuffer);
+		
+		modelLightingBuffer = BufferUtils.createByteBuffer(lightSamplerWidth * lightSamplerHeight * 4).asIntBuffer();
+		glBindImageTexture(3, 0, 0, false, 0, GL_READ_WRITE, GL_R32I);
+		glBindTexture(GL_TEXTURE_2D, targetLightmap.texId);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_INT, modelLightingBuffer);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindImageTexture(3, targetLightmap.texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
+		
+		tmpOffscreenFbo.setSingleTarget();
+		tmpOffscreenFbo.unbind();
+		
+		glDeleteTextures(lightNormalID);
+		glDeleteTextures(lightPositionID);
+		glDeleteTextures(lightSamplerID);
+		tmpOffscreenFbo.destroy();
+	}
+	
 	public void setupEmissionRender(int emissionWidth, int emissionHeight)
 	{
 		this.emissionWidth  = emissionWidth;
@@ -143,44 +208,70 @@ public class Lightmapper
 		targetNode = new Node(targetMesh, targetDiffuse);
 	}
 	
-	public boolean emitLightFromSample()
+	public boolean emitFromLightSample()
 	{
-		if (currentSample == totalTexels)
+		if (lightCurrentSample == totalLightTexels)
 		{
 			return false;
 		}
 		
-		if (lightSamplesBuffer.get(currentSample*4) == 1f)
+		if (lightSamplesBuffer.get(lightCurrentSample*8) == 1f)
 		{
-			calibrateCamera();
+			calibrateLightCamera();
 			
 			executeFirstPass();
 			executeFinalPass();
 		}
 		else
 		{
-			currentSample++;
+			lightCurrentSample++;
 			
 			return false;
 		}
 		
-		currentSample++;
+		lightCurrentSample++;
 		
 		return true;
 	}
 	
-	float perturbation = .5f;
-	void calibrateCamera()
+	public boolean emitFromModelSample()
+	{
+		if (modelCurrentSample == totalModelTexels)
+		{
+			return false;
+		}
+		
+		if (modelLightingBuffer.get(modelCurrentSample*64) > 100)
+		{
+			calibrateBounceCamera();
+			
+			executeFirstPass();
+			executeFinalPass();
+		}
+		else
+		{
+			modelCurrentSample++;
+			
+			return false;
+		}
+		
+		modelCurrentSample++;
+		
+		return true;
+	}
+	
+	float perturbation = .3f;
+	void calibrateLightCamera()
 	{
 		offscreenCamera.setActive();
 		
-		Vector3f eye = new Vector3f(lightPositionsBuffer.get(currentSample * 4 + 0), 
-									lightPositionsBuffer.get(currentSample * 4 + 1), 
-									lightPositionsBuffer.get(currentSample * 4 + 2));
+		Vector3f eye = new Vector3f(lightPositionsBuffer.get(lightCurrentSample * 4 + 0), 
+									lightPositionsBuffer.get(lightCurrentSample * 4 + 1), 
+									lightPositionsBuffer.get(lightCurrentSample * 4 + 2));
 		
-		Vector3f dir = new Vector3f(lightNormalsBuffer.get(currentSample * 4 + 0), 
-									lightNormalsBuffer.get(currentSample * 4 + 1), 
-									lightNormalsBuffer.get(currentSample * 4 + 2)); System.out.println(eye + " " + dir);
+		Vector3f dir = new Vector3f(lightNormalsBuffer.get(lightCurrentSample * 4 + 0), 
+									lightNormalsBuffer.get(lightCurrentSample * 4 + 1), 
+									lightNormalsBuffer.get(lightCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
 									
 		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
 										( (float) Math.random() - 0.5f ) * perturbation,
@@ -188,7 +279,28 @@ public class Lightmapper
 		
 		dir.normalise();
 		
-		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1));
+		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1)); //TODO
+	}
+	
+	void calibrateBounceCamera()
+	{
+		offscreenCamera.setActive();
+		
+		Vector3f eye = new Vector3f(modelPositionsBuffer.get(lightCurrentSample * 4 + 0), 
+									modelPositionsBuffer.get(lightCurrentSample * 4 + 1), 
+									modelPositionsBuffer.get(lightCurrentSample * 4 + 2));
+		
+		Vector3f dir = new Vector3f(modelNormalsBuffer.get(lightCurrentSample * 4 + 0), 
+									modelNormalsBuffer.get(lightCurrentSample * 4 + 1), 
+									modelNormalsBuffer.get(lightCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
+									
+		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
+										( (float) Math.random() - 0.5f ) * perturbation,
+										( (float) Math.random() - 0.5f ) * perturbation), dir);
+		
+		dir.normalise();
+		
+		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1)); //TODO
 	}
 	
 	void executeFirstPass()

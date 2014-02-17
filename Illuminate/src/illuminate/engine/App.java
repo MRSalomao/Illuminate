@@ -67,35 +67,41 @@ public class App
 	long startTime; boolean done;//TODO, 
 	public void render(float dt)
 	{
-		if(!lightmapper.emitLightFromSample())
+		if(!lightmapper.emitFromLightSample())
 		{
 			if (!done)
 			{
 				System.out.println("DONE: " + (System.currentTimeMillis() - startTime) );
 				done = true;
+				
+				lightmapper.setupModelSampler(64, 64); 
 			}
 			
-			mainCamera.setActive();
-			fpsCameraHandler.update(dt);
-			Camera.activeCamera.clearScreen();
+			if(!lightmapper.emitFromModelSample())
+			{
 			
-			diffuseShader.setActive();
-			
-			glActiveTexture(GL_TEXTURE0 + 4);
-//			glBindTexture(GL_TEXTURE_2D, edgeNormalizerTexture);
-			
-			lightmapper.targetNode.render();
-			
-			lightDiffuseShader.setActive();
-			
-			glDisable(GL_CULL_FACE);
-			lightmapper.lightNode.render();
-			glEnable(GL_CULL_FACE);
+				mainCamera.setActive();
+				fpsCameraHandler.update(dt);
+				Camera.activeCamera.clearScreen();
+				
+				diffuseShader.setActive();
+				
+				glActiveTexture(GL_TEXTURE0 + 4);
+		//			glBindTexture(GL_TEXTURE_2D, edgeNormalizerTexture);
+				
+				lightmapper.targetNode.render();
+				
+				lightDiffuseShader.setActive();
+				
+				glDisable(GL_CULL_FACE);
+				lightmapper.lightNode.render();
+				glEnable(GL_CULL_FACE);
+			}
 		}
 		
 //		System.out.println(lightmapper.currentSample);
 //		try {
-//			Thread.sleep(1);
+//			Thread.sleep(50);
 //		} catch (InterruptedException e) {
 //			// TODO Auto-generated catch block
 //			e.printStackTrace();
