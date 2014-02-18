@@ -18,7 +18,7 @@ void main()
 {
 	int nSamples = 32;
 
-	float intensity = imageLoad(output0, ivec2(pass_TextureCoord2*512) )  * .0001;
+	float intensity = imageLoad(output0, ivec2(pass_TextureCoord2*512) )  * .0002;
 
 	//vec4 edgeCorrection = texelFetch(texture_diffuse4, ivec2(pass_TextureCoord2 * textureSize(texture_diffuse4)), 0) / nSamples;
 	vec4 edgeCorrection = texture(texture_diffuse4, pass_TextureCoord2);

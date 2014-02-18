@@ -46,7 +46,7 @@ public class Lightmapper
 	
 	Mesh quadMesh;
 	
-	Shader firstPassShader, emitLightShader, lightConfigurer, edgeNormalizer, edgeNormalizer2;
+	Shader firstPassShader, emitLightShader, lightConfigurer, modelConfigurer, edgeNormalizer, edgeNormalizer2;
 	
 	OffscreenFBO offscreenFbo;
 	
@@ -65,6 +65,7 @@ public class Lightmapper
 		lightNode = new Node(lightsMesh, lightTexture);
 		
 		lightConfigurer = new Shader("lightConfigurer");
+		modelConfigurer = new Shader("modelConfigurer");
 		edgeNormalizer = new Shader("edgeNormalizer");
 		edgeNormalizer2 = new Shader("edgeNormalizer2");
 		
@@ -147,7 +148,7 @@ public class Lightmapper
 		offscreenCamera.setActive();
 		offscreenCamera.clearScreen();
 		
-		lightConfigurer.setActive();
+		modelConfigurer.setActive();
 		targetNode.render();
 		
 		int width  = tmpOffscreenFbo.width;
@@ -166,12 +167,12 @@ public class Lightmapper
 		modelNormalsBuffer = BufferUtils.createByteBuffer(width * height * bpp).asFloatBuffer();
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, modelNormalsBuffer);
 		
-		modelLightingBuffer = BufferUtils.createByteBuffer(lightSamplerWidth * lightSamplerHeight * 4).asIntBuffer();
-		glBindImageTexture(3, 0, 0, false, 0, GL_READ_WRITE, GL_R32I);
-		glBindTexture(GL_TEXTURE_2D, targetLightmap.texId);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_INT, modelLightingBuffer);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindImageTexture(3, targetLightmap.texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
+//		modelLightingBuffer = BufferUtils.createByteBuffer(lightSamplerWidth * lightSamplerHeight * 4).asIntBuffer();
+//		glBindImageTexture(3, 0, 0, false, 0, GL_READ_WRITE, GL_R32I);
+//		glBindTexture(GL_TEXTURE_2D, targetLightmap.texId);
+//		glGetTexImage(GL_TEXTURE_2D, 0, GL_RED_INTEGER, GL_INT, modelLightingBuffer);
+//		glBindTexture(GL_TEXTURE_2D, 0);
+//		glBindImageTexture(3, targetLightmap.texId, 0, false, 0, GL_READ_WRITE, GL_R32I);
 		
 		tmpOffscreenFbo.setSingleTarget();
 		tmpOffscreenFbo.unbind();
@@ -215,18 +216,12 @@ public class Lightmapper
 			return false;
 		}
 		
-		if (lightSamplesBuffer.get(lightCurrentSample*8) == 1f)
+		if (lightSamplesBuffer.get(lightCurrentSample*4) == 1f)
 		{
 			calibrateLightCamera();
 			
 			executeFirstPass();
 			executeFinalPass();
-		}
-		else
-		{
-			lightCurrentSample++;
-			
-			return false;
 		}
 		
 		lightCurrentSample++;
@@ -241,18 +236,12 @@ public class Lightmapper
 			return false;
 		}
 		
-		if (modelLightingBuffer.get(modelCurrentSample*64) > 100)
+		if (modelSamplesBuffer.get(modelCurrentSample*4) > 0.0f)
 		{
 			calibrateBounceCamera();
 			
 			executeFirstPass();
 			executeFinalPass();
-		}
-		else
-		{
-			modelCurrentSample++;
-			
-			return false;
 		}
 		
 		modelCurrentSample++;
@@ -260,7 +249,7 @@ public class Lightmapper
 		return true;
 	}
 	
-	float perturbation = .3f;
+	float perturbation = .5f;
 	void calibrateLightCamera()
 	{
 		offscreenCamera.setActive();
@@ -400,7 +389,7 @@ public class Lightmapper
 		Camera.activeCamera.clearScreenColor(0f,0f,0f,0f);
 		Camera.activeCamera.clearScreen();
 		
-		float samples = 128;
+		float samples = 32;
 		glUniform1f(edgeNormalizer2.alphaLocation, 1f/(samples*samples) );
 		
 		glEnable(GL_BLEND);
