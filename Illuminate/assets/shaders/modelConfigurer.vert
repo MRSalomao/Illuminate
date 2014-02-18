@@ -19,10 +19,8 @@ out vec2 uv;
 
 void main() 
 {
-	uv = in_TextureCoord1;
-	
 	p_eye = (modelMatrix * in_Position).xyz;
 	n_eye = (modelMatrix * in_Normal).xyz;
 	
-	gl_Position = vec4(-1+2*in_TextureCoord1.x, 1-2*in_TextureCoord1.y , 0, 1);
+	gl_Position = vec4(-1+2*in_TextureCoord2.x, 1-2*in_TextureCoord2.y , 0, 1);
 }

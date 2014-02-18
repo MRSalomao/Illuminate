@@ -2,9 +2,14 @@ package illuminate.engine;
 
 import illuminate.Lightmapper;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+
+import javax.imageio.ImageIO;
 
 import static org.lwjgl.opengl.ARBTextureStorage.glTexStorage2D;
 import static org.lwjgl.opengl.GL11.*;
@@ -62,23 +67,53 @@ public class App
 		lightmapper.genEdgeNormalizer2();
 		
 		startTime = System.currentTimeMillis();
-//		while ( lightEmitter.emitLightFromSample() ) if(lightEmitter.currentSample%100==0) System.out.println(lightEmitter.currentSample);
+		
+		while ( lightmapper.emitFromLightSample() ) if(lightmapper.lightCurrentSample%100==0) System.out.println(lightmapper.lightCurrentSample);
+		
+		lightmapper.setupModelSampler(128, 128); 
+		
+		
+		
+//		File file = new File("test.png"); // The file to save to.
+//		String format = "PNG"; // Example: "PNG" or "JPG"
+//		BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
+//		  
+//		int width = 128, height = 128, bpp = 4;
+//		
+//		for(int x = 0; x < width; x++)
+//		{
+//			for(int y = 0; y < height; y++)
+//			{
+//				int i = (x + (width * y)) * bpp;
+//				int r = ((int) (lightmapper.modelSamplesBuffer.get(i+0) * 255)) & 0xFF;
+//				int g = ((int) (lightmapper.modelSamplesBuffer.get(i+1) * 255)) & 0xFF;
+//				int b = ((int) (lightmapper.modelSamplesBuffer.get(i+2) * 255)) & 0xFF;
+//				
+//				image.setRGB(x, height - (y + 1), (0xFF << 24) | (r << 16) | (g << 8) | b);
+//			}
+//		}
+//		  
+//		try {
+//			ImageIO.write(image, format, file);
+//		} catch (IOException e) { e.printStackTrace(); }
+		
+		while ( lightmapper.emitFromModelSample() ) if(lightmapper.modelCurrentSample%100==0) System.out.println(lightmapper.modelCurrentSample);
 	}
 	long startTime; boolean done;//TODO, 
 	public void render(float dt)
 	{
-		if(!lightmapper.emitFromLightSample())
-		{
-			if (!done)
-			{
-				System.out.println("DONE: " + (System.currentTimeMillis() - startTime) );
-				done = true;
-				
-				lightmapper.setupModelSampler(64, 64); 
-			}
-			
-			if(!lightmapper.emitFromModelSample())
-			{
+//		if(!lightmapper.emitFromLightSample())
+//		{
+//			if (!done)
+//			{
+//				System.out.println("DONE: " + (System.currentTimeMillis() - startTime) );
+//				done = true;
+//				
+//				lightmapper.setupModelSampler(64, 64); 
+//			}
+//			lightmapper.setupModelSampler(64, 64); 
+//			if(!lightmapper.emitFromModelSample())
+//			{
 			
 				mainCamera.setActive();
 				fpsCameraHandler.update(dt);
@@ -96,8 +131,8 @@ public class App
 				glDisable(GL_CULL_FACE);
 				lightmapper.lightNode.render();
 				glEnable(GL_CULL_FACE);
-			}
-		}
+//			}
+//		}
 		
 //		System.out.println(lightmapper.currentSample);
 //		try {

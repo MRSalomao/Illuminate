@@ -19,7 +19,7 @@ out vec2 uv;
 
 void main() 
 {
-	uv = in_TextureCoord1;
+	uv = in_TextureCoord2;
 	
 	p_eye = (modelMatrix * in_Position).xyz;
 	n_eye = (modelMatrix * in_Normal).xyz;

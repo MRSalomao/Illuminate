@@ -35,7 +35,7 @@ public class Lightmapper
 	Camera offscreenCamera;
 	
 	FloatBuffer lightSamplesBuffer, lightPositionsBuffer, lightNormalsBuffer;
-	FloatBuffer modelSamplesBuffer, modelPositionsBuffer, modelNormalsBuffer;
+	public FloatBuffer modelSamplesBuffer, modelPositionsBuffer, modelNormalsBuffer; //TODO
 	IntBuffer modelLightingBuffer;
 	
 	int normalPassTextureID, positionPassTextureID, uv2PassTextureID;
@@ -56,6 +56,8 @@ public class Lightmapper
 	public int lightCurrentSample, totalLightTexels;
 	public int modelCurrentSample, totalModelTexels;
 	
+	int lightToShootLoc, lightToShoot;
+	
 	public Lightmapper()
 	{
 		offscreenCamera = new Camera(new Vector3f(0,0,0));
@@ -63,6 +65,7 @@ public class Lightmapper
 		lightsMesh = new Mesh("lights.mrs");
 		lightTexture = new Texture("white.png", Texture.DIFFUSE);
 		lightNode = new Node(lightsMesh, lightTexture);
+//		lightNode.rotation.set(0, 0, 2.9f);
 		
 		lightConfigurer = new Shader("lightConfigurer");
 		modelConfigurer = new Shader("modelConfigurer");
@@ -98,7 +101,10 @@ public class Lightmapper
 		offscreenCamera.clearScreen();
 		
 		lightConfigurer.setActive();
+		
+		glDisable(GL_CULL_FACE);
 		lightNode.render();
+		glEnable(GL_CULL_FACE);
 		
 		int width  = tmpOffscreenFbo.width;
 		int height = tmpOffscreenFbo.height;
@@ -144,18 +150,21 @@ public class Lightmapper
 		
 		tmpOffscreenFbo.bind();
 		tmpOffscreenFbo.setMultTarget();
+		glViewport(0, 0, samplerWidth, samplerHeight);
 		
 		offscreenCamera.setActive();
 		offscreenCamera.clearScreen();
 		
+		glDisable(GL_CULL_FACE);
 		modelConfigurer.setActive();
 		targetNode.render();
+		glEnable(GL_CULL_FACE);
 		
 		int width  = tmpOffscreenFbo.width;
 		int height = tmpOffscreenFbo.height;
 		int bpp = 16;
 		
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT); // write lighting teximage to here! - create a new shader, similar to lightCfgr, the "modelCfgr" TODO
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 		modelSamplesBuffer = BufferUtils.createByteBuffer(width * height * bpp).asFloatBuffer();
 		glReadPixels(0, 0, width, height, GL_RGBA, GL_FLOAT, modelSamplesBuffer);
 		
@@ -198,6 +207,8 @@ public class Lightmapper
 		firstPassShader = new Shader("firstPass");
 		emitLightShader = new Shader("emitLight");
 		
+		lightToShootLoc = glGetUniformLocation(emitLightShader.programId, "lightToShoot");
+		
 		targetDiffuse = new Texture("house.png", Texture.DIFFUSE);
 		targetLightmap = new Texture(emissionWidth, emissionHeight, Texture.IMAGE_BUFFER);
 		
@@ -218,6 +229,8 @@ public class Lightmapper
 		
 		if (lightSamplesBuffer.get(lightCurrentSample*4) == 1f)
 		{
+			lightToShoot = 50;
+			
 			calibrateLightCamera();
 			
 			executeFirstPass();
@@ -236,8 +249,11 @@ public class Lightmapper
 			return false;
 		}
 		
+		System.out.println("sample: " + modelSamplesBuffer.get(modelCurrentSample*4));
 		if (modelSamplesBuffer.get(modelCurrentSample*4) > 0.0f)
 		{
+			lightToShoot = 1;
+			
 			calibrateBounceCamera();
 			
 			executeFirstPass();
@@ -260,7 +276,7 @@ public class Lightmapper
 		
 		Vector3f dir = new Vector3f(lightNormalsBuffer.get(lightCurrentSample * 4 + 0), 
 									lightNormalsBuffer.get(lightCurrentSample * 4 + 1), 
-									lightNormalsBuffer.get(lightCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
+									lightNormalsBuffer.get(lightCurrentSample * 4 + 2)); //System.out.println(eye + " " + dir);
 									
 		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
 										( (float) Math.random() - 0.5f ) * perturbation,
@@ -268,20 +284,20 @@ public class Lightmapper
 		
 		dir.normalise();
 		
-		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1)); //TODO
+		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1));
 	}
 	
 	void calibrateBounceCamera()
 	{
 		offscreenCamera.setActive();
 		
-		Vector3f eye = new Vector3f(modelPositionsBuffer.get(lightCurrentSample * 4 + 0), 
-									modelPositionsBuffer.get(lightCurrentSample * 4 + 1), 
-									modelPositionsBuffer.get(lightCurrentSample * 4 + 2));
+		Vector3f eye = new Vector3f(modelPositionsBuffer.get(modelCurrentSample * 4 + 0), 
+									modelPositionsBuffer.get(modelCurrentSample * 4 + 1), 
+									modelPositionsBuffer.get(modelCurrentSample * 4 + 2));
 		
-		Vector3f dir = new Vector3f(modelNormalsBuffer.get(lightCurrentSample * 4 + 0), 
-									modelNormalsBuffer.get(lightCurrentSample * 4 + 1), 
-									modelNormalsBuffer.get(lightCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
+		Vector3f dir = new Vector3f(modelNormalsBuffer.get(modelCurrentSample * 4 + 0), 
+									modelNormalsBuffer.get(modelCurrentSample * 4 + 1), 
+									modelNormalsBuffer.get(modelCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
 									
 		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
 										( (float) Math.random() - 0.5f ) * perturbation,
@@ -320,6 +336,7 @@ public class Lightmapper
 		glBindTexture(GL_TEXTURE_2D, uv2PassTextureID);
 		
 		emitLightShader.setActive();
+		glUniform1i(lightToShootLoc, lightToShoot);
 		
 		glViewport(0, 0, emissionWidth, emissionHeight);
 		quadMesh.render();

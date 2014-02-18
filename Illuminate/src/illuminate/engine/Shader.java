@@ -18,7 +18,7 @@ public class Shader
 	
 	static Shader activeProgram;
 	
-	int programId;
+	public int programId;
 	
 	public int tex0Location, tex1Location, tex2Location, imageTexLocation;
 	

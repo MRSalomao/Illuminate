@@ -12,7 +12,11 @@ layout (binding=3, size1x32) uniform iimage2D output0;
 
 void main () 
 {
-	samplerOut = vec4(imageLoad(output0, ivec2( gl_FragCoord.xy * vec2(8) ) )  * .0001);
+	ivec2 coord = ivec2(gl_FragCoord.x * 4, (128 - gl_FragCoord.y) * 4);
+
+	float intensity = imageLoad(output0, coord)  * .0002;
+
+	samplerOut = vec4(intensity);
 
 	positionOut = p_eye;
 	normalOut = n_eye;

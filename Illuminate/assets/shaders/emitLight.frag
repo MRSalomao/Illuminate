@@ -3,6 +3,7 @@
 //uniform sampler2D texture_diffuse0;
 //uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_diffuse2;
+uniform int lightToShoot;
 
 //in vec4 pass_Color;
 //in vec2 pass_TextureCoord1;
@@ -26,7 +27,7 @@ void main()
 	
 	if ( coordInt != ivec2(0,0) )
 	{
-		int luminance = imageAtomicAdd(output_buffer, coordInt, 1);
+		int luminance = imageAtomicAdd(output_buffer, coordInt, lightToShoot);
 		/*imageAtomicAdd(output_buffer, coordInt+ivec2(0,1), 1);
 		imageAtomicAdd(output_buffer, coordInt+ivec2(1,0), 1);
 		imageAtomicAdd(output_buffer, coordInt+ivec2(1,1), 1);
