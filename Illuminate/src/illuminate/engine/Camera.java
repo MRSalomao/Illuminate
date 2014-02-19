@@ -26,17 +26,17 @@ public class Camera
 	
 	public Camera(Vector3f cameraPos)
 	{
-		this(cameraPos, new Vector3f(0,0,0), 60f, (float) App.singleton.canvasWidth / (float) App.singleton.canvasHeight, 0.1f, 100f);
+		this(cameraPos, new Vector3f(0,0,0), 60f, (float) App.canvasWidth / (float) App.canvasHeight, 0.1f, 100f);
 	}
 	
 	public Camera(Vector3f cameraPos, Vector3f cameraAngle)
 	{
-		this(cameraPos, cameraAngle, 60f, (float) App.singleton.canvasWidth / (float) App.singleton.canvasHeight, 0.1f, 100f);
+		this(cameraPos, cameraAngle, 60f, (float) App.canvasWidth / (float) App.canvasHeight, 0.1f, 100f);
 	}
 	
 	public Camera(Vector3f cameraPos, Vector3f cameraAngle, float aspectRatio, float near_plane, float far_plane)
 	{
-		this(cameraPos, cameraAngle, 60f, (float) App.singleton.canvasWidth / (float) App.singleton.canvasHeight, near_plane, far_plane);
+		this(cameraPos, cameraAngle, 60f, (float) App.canvasWidth / (float) App.canvasHeight, near_plane, far_plane);
 	}
 	
 	public Camera(Vector3f cameraPos, Vector3f cameraAngle, float fieldOfView, float aspectRatio, float near_plane, float far_plane)

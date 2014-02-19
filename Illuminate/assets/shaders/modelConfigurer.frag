@@ -12,9 +12,9 @@ layout (binding=3, size1x32) uniform iimage2D output0;
 
 void main () 
 {
-	ivec2 coord = ivec2(gl_FragCoord.x * 4, (128 - gl_FragCoord.y) * 4);
+	ivec2 coord = ivec2(gl_FragCoord.x , (512 - gl_FragCoord.y) );
 
-	float intensity = imageLoad(output0, coord)  * .0002;
+	float intensity = imageLoad(output0, coord)  * .00000001;
 
 	samplerOut = vec4(intensity);
 

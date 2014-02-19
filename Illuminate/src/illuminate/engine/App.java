@@ -62,7 +62,7 @@ public class App
 		lightDiffuseShader = new Shader("lightDiffuse");
 		
 		lightmapper = new Lightmapper();
-		lightmapper.setupLightSampler(32, 32);
+		lightmapper.setupLightSampler(64, 64);
 		lightmapper.setupEmissionRender(512, 512);
 		lightmapper.genEdgeNormalizer2();
 		
@@ -70,34 +70,33 @@ public class App
 		
 		while ( lightmapper.emitFromLightSample() ) if(lightmapper.lightCurrentSample%100==0) System.out.println(lightmapper.lightCurrentSample);
 		
-		lightmapper.setupModelSampler(128, 128); 
+		lightmapper.setupModelSampler(512, 512); 
 		
+		int size = 512;
+		File file = new File("test.png"); // The file to save to.
+		String format = "PNG"; // Example: "PNG" or "JPG"
+		BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
+		  
+		int width = size, height = size, bpp = 4;
 		
+		for(int x = 0; x < width; x++)
+		{
+			for(int y = 0; y < height; y++)
+			{
+				int i = (x + (width * y)) * bpp;
+				int r = ((int) (lightmapper.modelSamplesBuffer.get(i+0) * 255)) & 0xFF;
+				int g = ((int) (lightmapper.modelSamplesBuffer.get(i+1) * 255)) & 0xFF;
+				int b = ((int) (lightmapper.modelSamplesBuffer.get(i+2) * 255)) & 0xFF;
+				
+				image.setRGB(x, height - (y + 1), (0xFF << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		  
+		try {
+			ImageIO.write(image, format, file);
+		} catch (IOException e) { e.printStackTrace(); }
 		
-//		File file = new File("test.png"); // The file to save to.
-//		String format = "PNG"; // Example: "PNG" or "JPG"
-//		BufferedImage image = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
-//		  
-//		int width = 128, height = 128, bpp = 4;
-//		
-//		for(int x = 0; x < width; x++)
-//		{
-//			for(int y = 0; y < height; y++)
-//			{
-//				int i = (x + (width * y)) * bpp;
-//				int r = ((int) (lightmapper.modelSamplesBuffer.get(i+0) * 255)) & 0xFF;
-//				int g = ((int) (lightmapper.modelSamplesBuffer.get(i+1) * 255)) & 0xFF;
-//				int b = ((int) (lightmapper.modelSamplesBuffer.get(i+2) * 255)) & 0xFF;
-//				
-//				image.setRGB(x, height - (y + 1), (0xFF << 24) | (r << 16) | (g << 8) | b);
-//			}
-//		}
-//		  
-//		try {
-//			ImageIO.write(image, format, file);
-//		} catch (IOException e) { e.printStackTrace(); }
-		
-		while ( lightmapper.emitFromModelSample() ) if(lightmapper.modelCurrentSample%100==0) System.out.println(lightmapper.modelCurrentSample);
+//		while ( lightmapper.emitFromModelSample() ) if(lightmapper.modelCurrentSample%100==0) System.out.println(lightmapper.modelCurrentSample);
 	}
 	long startTime; boolean done;//TODO, 
 	public void render(float dt)

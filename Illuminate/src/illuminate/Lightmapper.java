@@ -60,7 +60,8 @@ public class Lightmapper
 	
 	public Lightmapper()
 	{
-		offscreenCamera = new Camera(new Vector3f(0,0,0));
+		//offscreenCamera = new Camera(new Vector3f(0,0,0));
+		offscreenCamera = new Camera(new Vector3f(0,0,0), new Vector3f(0,0,0), 40f, 0.05f, 50f);
 		
 		lightsMesh = new Mesh("lights.mrs");
 		lightTexture = new Texture("white.png", Texture.DIFFUSE);
@@ -229,7 +230,7 @@ public class Lightmapper
 		
 		if (lightSamplesBuffer.get(lightCurrentSample*4) == 1f)
 		{
-			lightToShoot = 50;
+			lightToShoot = 4000;
 			
 			calibrateLightCamera();
 			
@@ -250,9 +251,9 @@ public class Lightmapper
 		}
 		
 		System.out.println("sample: " + modelSamplesBuffer.get(modelCurrentSample*4));
-		if (modelSamplesBuffer.get(modelCurrentSample*4) > 0.0f)
+		if (modelSamplesBuffer.get(modelCurrentSample*4) > 0.01f)
 		{
-			lightToShoot = 1;
+			lightToShoot = (int) (modelSamplesBuffer.get(modelCurrentSample*4) * 600f);
 			
 			calibrateBounceCamera();
 			
@@ -265,7 +266,7 @@ public class Lightmapper
 		return true;
 	}
 	
-	float perturbation = .5f;
+	float perturbation = .7f;
 	void calibrateLightCamera()
 	{
 		offscreenCamera.setActive();
@@ -287,21 +288,24 @@ public class Lightmapper
 		offscreenCamera.lookAtDirection(eye, dir, new Vector3f(0,0,1));
 	}
 	
+	float kMoveBack = 0.01f;
 	void calibrateBounceCamera()
 	{
 		offscreenCamera.setActive();
 		
-		Vector3f eye = new Vector3f(modelPositionsBuffer.get(modelCurrentSample * 4 + 0), 
-									modelPositionsBuffer.get(modelCurrentSample * 4 + 1), 
-									modelPositionsBuffer.get(modelCurrentSample * 4 + 2));
-		
 		Vector3f dir = new Vector3f(modelNormalsBuffer.get(modelCurrentSample * 4 + 0), 
 									modelNormalsBuffer.get(modelCurrentSample * 4 + 1), 
-									modelNormalsBuffer.get(modelCurrentSample * 4 + 2)); System.out.println(eye + " " + dir);
+									modelNormalsBuffer.get(modelCurrentSample * 4 + 2)); 
+									
+		Vector3f eye = new Vector3f(modelPositionsBuffer.get(modelCurrentSample * 4 + 0) - dir.x * kMoveBack, 
+									modelPositionsBuffer.get(modelCurrentSample * 4 + 1) - dir.y * kMoveBack, 
+									modelPositionsBuffer.get(modelCurrentSample * 4 + 2) - dir.z * kMoveBack);
 									
 		Vector3f.add(dir, new Vector3f( ( (float) Math.random() - 0.5f ) * perturbation,
 										( (float) Math.random() - 0.5f ) * perturbation,
 										( (float) Math.random() - 0.5f ) * perturbation), dir);
+		
+		System.out.println(eye + " " + dir);
 		
 		dir.normalise();
 		
